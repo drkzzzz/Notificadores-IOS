@@ -1,0 +1,31 @@
+workflows:
+  ios-build:
+    name: Build iOS Notificadores (Unsigned)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Instalar dependencias Flutter
+        script: |
+          flutter packages pub get
+      - name: Instalar pods de iOS
+        script: |
+          cd ios
+          pod install
+          cd ..
+      - name: Compilar IPA sin firmar
+        script: |
+          flutter build ipa --no-codesign
+      - name: Empaquetar como archivo .ipa instalable
+        script: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r Notificadores_unsigned.ipa Payload
+          mkdir -p ../../../output
+          cp Notificadores_unsigned.ipa ../../../output/
+    artifacts:
+      - output/Notificadores_unsigned.ipa
