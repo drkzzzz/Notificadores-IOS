@@ -18,14 +18,20 @@ workflows:
           cd ..
       - name: Compilar IPA sin firmar
         script: |
-          flutter build ipa --no-codesign
+          flutter build ios --release --no-codesign
       - name: Empaquetar como archivo .ipa instalable
         script: |
-          cd build/ios/iphoneos
+          set -e
+          APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: No se encontró Runner.app"
+            exit 1
+          fi
+          echo "Runner.app encontrado en: $APP_PATH"
           mkdir -p Payload
-          cp -r Runner.app Payload/
+          cp -r "$APP_PATH" Payload/
           zip -r Notificadores_unsigned.ipa Payload
-          mkdir -p ../../../output
-          cp Notificadores_unsigned.ipa ../../../output/
+          mkdir -p $CM_BUILD_DIR/output
+          mv Notificadores_unsigned.ipa $CM_BUILD_DIR/output/
     artifacts:
       - output/Notificadores_unsigned.ipa
